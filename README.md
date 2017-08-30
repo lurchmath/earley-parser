@@ -4,3 +4,27 @@
 ![Build status](https://travis-ci.org/lurchmath/earley-parser.svg?branch=master)
 
 JavaScript implementation of [the Earley parsing algorithm](https://en.wikipedia.org/wiki/Earley_parser)
+
+## To get started:
+
+Import this into your site like so:
+
+```html
+<script src='https://cdn.jsdelivr.net/npm/earley-parser@1.0.0/earley-parser.js'></script>
+```
+
+Or install it from npm like so:
+```bash
+npm install earley-parser
+```
+
+API Reference documentation forthcoming.
+
+## Repository contents
+
+ * [Source code, in Literate CoffeeScript](earley-parser.litcoffee)
+ * [Compiled and minified JavaScript from a CDN](https://cdn.jsdelivr.net/npm/earley-parser@1.0.0/earley-parser.js) that you can import directly into your projects from that URL
+
+## Documentation
+
+Documentation forthcoming.
