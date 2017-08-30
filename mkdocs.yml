@@ -1,0 +1,5 @@
+site_name: Earley Parser Documentation
+pages:
+    - Home: index.md
+    - Source: source-code.md
+    - Reference: api-reference.md

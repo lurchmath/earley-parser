@@ -1,0 +1,84 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "Earley Parser Documentation\n\n\nGet started now\n\n\nTo import this code via a CDN or \nnpm\n, check out the \nAPI Reference\nPage\n.\n\n\nBackground\n\n\nThe \nEarley Parsing algorithm\n\ncan parse strings according to any context-free grammar.  This module lets\nthe user define tokens and grammar rules, then pass strings in to be\ntokenized and parsed, or just pass in pre-tokenized arrays to be parsed.\n\n\nParse trees are returned as nested JavaScript arrays, but the user can also\nprovide callbacks that construct other kinds of hierarchical structures (or\ndo computation) instead of building parse trees.\n\n\nMore Information\n\n\nThe following additional information is available in this documentation.\n\n\n\n\nSource Code\n - see the source and/or import it into your\n   own project\n\n\nAPI Reference\n - how to use the various functions and\n   objects provided", 
+            "title": "Home"
+        }, 
+        {
+            "location": "/#earley-parser-documentation", 
+            "text": "", 
+            "title": "Earley Parser Documentation"
+        }, 
+        {
+            "location": "/#get-started-now", 
+            "text": "To import this code via a CDN or  npm , check out the  API Reference\nPage .", 
+            "title": "Get started now"
+        }, 
+        {
+            "location": "/#background", 
+            "text": "The  Earley Parsing algorithm \ncan parse strings according to any context-free grammar.  This module lets\nthe user define tokens and grammar rules, then pass strings in to be\ntokenized and parsed, or just pass in pre-tokenized arrays to be parsed.  Parse trees are returned as nested JavaScript arrays, but the user can also\nprovide callbacks that construct other kinds of hierarchical structures (or\ndo computation) instead of building parse trees.", 
+            "title": "Background"
+        }, 
+        {
+            "location": "/#more-information", 
+            "text": "The following additional information is available in this documentation.   Source Code  - see the source and/or import it into your\n   own project  API Reference  - how to use the various functions and\n   objects provided", 
+            "title": "More Information"
+        }, 
+        {
+            "location": "/source-code/", 
+            "text": "Source Code\n\n\nReading the source\n\n\nThe code in \nthe repository\n\nresides in \none\nfile\n,\nwritten in \nLiterate CoffeeScript\n.\n\n\nChanging the source\n\n\nIf you don't like that language, you can always compile it directly to\nJavaScript with the following command.\n\n\ncoffee --compile earley-parser.litcoffee\n\n\n\n\nThis assumes that you've \ninstalled\nCoffeeScript\n and have the \nsource\nfile\n\naccessible.\n\n\nImporting the source\n\n\nTo import the source into your project, you can include it directly from a\nCDN at \nthis\nURL\n. There is a\nsource map file in the same folder that your browser should detect.", 
+            "title": "Source"
+        }, 
+        {
+            "location": "/source-code/#source-code", 
+            "text": "", 
+            "title": "Source Code"
+        }, 
+        {
+            "location": "/source-code/#reading-the-source", 
+            "text": "The code in  the repository \nresides in  one\nfile ,\nwritten in  Literate CoffeeScript .", 
+            "title": "Reading the source"
+        }, 
+        {
+            "location": "/source-code/#changing-the-source", 
+            "text": "If you don't like that language, you can always compile it directly to\nJavaScript with the following command.  coffee --compile earley-parser.litcoffee  This assumes that you've  installed\nCoffeeScript  and have the  source\nfile \naccessible.", 
+            "title": "Changing the source"
+        }, 
+        {
+            "location": "/source-code/#importing-the-source", 
+            "text": "To import the source into your project, you can include it directly from a\nCDN at  this\nURL . There is a\nsource map file in the same folder that your browser should detect.", 
+            "title": "Importing the source"
+        }, 
+        {
+            "location": "/api-reference/", 
+            "text": "API Reference\n\n\nGetting started\n\n\nIn the browser\n\n\nImport the minified JavaScript, which you can \ndownload from our repository\ndirectly\n\nor import from a CDN with the following one-liner.\n\n\nscript src='https://cdn.jsdelivr.net/npm/earley-parser@1.0.0/earley-parser.js'\n/script\n\n\n\n\n\nFrom the command line\n\n\nOr install this package into your project the usual way:\n\n\nnpm install earley-parser\n\n\n\n\nThen within any of your modules, import it as follows.\n\n\nTokenizer = require( \nearley-parser\n ).Tokenizer;\nGrammar = require( \nearley-parser\n ).Grammar;\n\n\n\n\nAfter that, any of the example code snippets in this documentation should\nfunction as-is.\n\n\nExample:\n\n\n\nG = new Grammar( 'name your grammar here' );\ntypeof( G.addRule )\n\n\n\n\n\n\n\n\nvar elements = document.getElementsByClassName( 'runnable-example' );\nfor ( var i = 0 ; i < elements.length ; i++ ) {\n    var source = elements[i].textContent;\n    elements[i].textContent = '';\n    var notebook = RunKit.createNotebook( {\n        element: elements[i],\n        source: source,\n        preamble: 'Tokenizer = require( \"earley-parser\" ).Tokenizer;\\nGrammar = require( \"earley-parser\" ).Grammar;'\n    } );\n}\n\n\n\n\nThis API Reference is not complete!\n\n\nFurther documentation forthcoming.", 
+            "title": "Reference"
+        }, 
+        {
+            "location": "/api-reference/#api-reference", 
+            "text": "", 
+            "title": "API Reference"
+        }, 
+        {
+            "location": "/api-reference/#getting-started", 
+            "text": "", 
+            "title": "Getting started"
+        }, 
+        {
+            "location": "/api-reference/#in-the-browser", 
+            "text": "Import the minified JavaScript, which you can  download from our repository\ndirectly \nor import from a CDN with the following one-liner.  script src='https://cdn.jsdelivr.net/npm/earley-parser@1.0.0/earley-parser.js' /script", 
+            "title": "In the browser"
+        }, 
+        {
+            "location": "/api-reference/#from-the-command-line", 
+            "text": "Or install this package into your project the usual way:  npm install earley-parser  Then within any of your modules, import it as follows.  Tokenizer = require(  earley-parser  ).Tokenizer;\nGrammar = require(  earley-parser  ).Grammar;  After that, any of the example code snippets in this documentation should\nfunction as-is.  Example:  \nG = new Grammar( 'name your grammar here' );\ntypeof( G.addRule )   \nvar elements = document.getElementsByClassName( 'runnable-example' );\nfor ( var i = 0 ; i < elements.length ; i++ ) {\n    var source = elements[i].textContent;\n    elements[i].textContent = '';\n    var notebook = RunKit.createNotebook( {\n        element: elements[i],\n        source: source,\n        preamble: 'Tokenizer = require( \"earley-parser\" ).Tokenizer;\\nGrammar = require( \"earley-parser\" ).Grammar;'\n    } );\n}", 
+            "title": "From the command line"
+        }, 
+        {
+            "location": "/api-reference/#this-api-reference-is-not-complete", 
+            "text": "Further documentation forthcoming.", 
+            "title": "This API Reference is not complete!"
+        }
+    ]
+}
