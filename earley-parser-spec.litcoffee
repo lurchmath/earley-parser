@@ -3,9 +3,8 @@
 
 Here we import the module we're about to test.
 
-    { Grammar, Tokenizer } = require '../src/parsing-duo'
-    { OM, OMNode } = require '../src/openmath-duo'
-    full = ( x ) -> require( 'util' ).inspect x, depth : null
+    { Grammar, Tokenizer } = require './earley-parser'
+    { OM, OMNode } = require 'openmath-js'
 
 ## The Grammar class
 
@@ -293,7 +292,7 @@ Here we define the grammar.
 
         G = null
         beforeEach ->
-            G = require( '../src/mathquill-parser-solo' ).mathQuillParser
+            G = require( './mathquill-parser' ).mathQuillParser
 
 ### should parse numbers
 

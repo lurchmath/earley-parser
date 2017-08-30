@@ -9,11 +9,6 @@ translated from [the desktop version of Lurch](www.lurchmath.org).
 
 ## Utilities
 
-The following lines ensure that this file works in Node.js, for testing.
-
-    if not exports? then exports = module?.exports ? window
-    if require? then require './utils'
-
 An Earley state is an object of the following form.  The `lhs` and `rhs`
 together are the rule currently being matched, `pos` is the current
 position in that production, a zero-based index through all the interstitial
@@ -89,7 +84,7 @@ terminals, which must match the regular expression).
 
 Now we begin the class.
 
-    exports.Grammar = class Grammar
+    class Grammar
 
 ## Constructor
 
@@ -256,30 +251,6 @@ the "completer":  We just completed a nonterminal, so mark progress in
 whichever rules spawned it by copying them into the next column in
 `stateGrid`, with progress incremented one step.
 
-I make one extension to the Earley algorithm at this point to prevent a
-simple type of cyclicity.  For example, if there are production rules A -> B
-and B -> A, then upon completing an A, we will also complete a B, and then
-an A again, and so on ad infinitum.  Thus I create a function that, if the
-`addCategories` option is enabled, will prevent this simple type of infinite
-loop by preventing the second completion of the same array by any rule.
-
-                        # duplicateLabel = ( got ) ->
-                        #     if not options.addCategories then return no
-                        #     length = if options.expressionBuilder then 3 \
-                        #         else 2
-                        #     walk = got
-                        #     firstLabel = null
-                        #     while walk.length is length
-                        #         if firstLabel is null
-                        #             firstLabel = walk[length-2]
-                        #         else
-                        #             debug 'comparing', firstLabel, 'to',
-                        #                 walk[length-2]
-                        #             if walk[length-2] is firstLabel
-                        #                 return yes
-                        #         walk = walk[length-1]
-                        #     no
-
 Then we proceed with the code for the completer.
 
                         debug 'considering if this completion matters to
@@ -295,10 +266,6 @@ Then we proceed with the code for the completer.
                                     got.unshift expressionBuilderFlag
                                 if options.collapseBranches and \
                                     got.length is 1 then got = got[0]
-                                # if duplicateLabel got
-                                #     debug 'duplicate label -- truncating
-                                #         search along that path'
-                                #     continue
                                 s.got.push got
                                 stateGrid[i].push s
                                 debug "completer added this to #{i}:",
@@ -429,7 +396,7 @@ an instance, add some token types using the `addType` function documented
 below, then either call its `tokenize` function yourself on a string, or
 just set this tokenizer as the default tokenizer on a parser.
 
-    exports.Tokenizer = class Tokenizer
+    class Tokenizer
         constructor : -> @tokenTypes = [ ]
 
 This function adds a token type to this object.  The first parameter is the
@@ -499,6 +466,12 @@ matches the beginning of the remaining input, null is returned.
                 if input.length is original then return null
             result
 
+The following step ensures that this file works in Node.js, for testing.
+
+    if exports?
+        exports.Grammar = Grammar
+        exports.Tokenizer = Tokenizer
+
 ## Debugging
 
 The following debugging routines are used in some of the code above.
@@ -512,3 +485,50 @@ The following debugging routines are used in some of the code above.
     debugState = ( state ) ->
         "(#{state.lhs} -> #{state.pos}in[#{state.rhs}], #{state.ori}) got
             #{debugNestedArrays state.got}"
+
+## Comparing JSON objects for equality
+
+By a "JSON object" I mean an object where the only information we care about
+is that which would be preserved by `JSON.stringify` (i.e., an object that
+can be serialized and deserialized with JSON's `stringify` and `parse`
+without bringing any harm to our data).
+
+We wish to be able to compare such objects for semantic equality (not actual
+equality of objects in memory, as `==` would do).  We cannot simply do this
+by comparing the `JSON.stringify` of each, because [documentation on
+JSON.stringify](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)
+says that we cannot rely on a consistent ordering of the object keys.  Thus
+we implement the following comparison routine.
+
+Note that this only works for objects that fit the requirements above; if
+equality (in your situation) is affected by the prototype chain, or if your
+object contains functions, or any other similar difficulty, then this
+routine is not guaranteed to work for you.
+
+It yields the same result as `JSON.stringify(x) is JSON.stringify(y)` would
+if `stringify` always gave the same ordering of object keys.
+
+    JSON.equals = ( x, y ) ->
+
+If only one is an object, or only one is an array, then they're not equal.
+If neither is an object, you can use plain simple `is` to compare.
+
+        return no if ( x instanceof Object ) isnt ( y instanceof Object )
+        return no if ( x instanceof Array ) isnt ( y instanceof Array )
+        if x not instanceof Object then return x is y
+
+So now we know that both inputs are objects.
+
+Get their keys in a consistent order.  If they aren't the same for both
+objects, then the objects aren't equal.
+
+        xkeys = ( Object.keys x ).sort()
+        ykeys = ( Object.keys y ).sort()
+        return no if ( JSON.stringify xkeys ) isnt ( JSON.stringify ykeys )
+
+If there's any key on which the objects don't match, then they aren't equal.
+Otherwise, they are.
+
+        for key in xkeys
+            if not JSON.equals x[key], y[key] then return no
+        yes
