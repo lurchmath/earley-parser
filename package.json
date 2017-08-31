@@ -1,6 +1,6 @@
 {
     "name": "earley-parser",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "JavaScript implementation of the Earley parsing algorithm",
     "author": "Nathan Carter <ncarter@bentley.edu> (http://nathancarter.github.io",
     "license": "LGPLv3",

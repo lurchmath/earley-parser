@@ -18,7 +18,9 @@ Or install it from npm like so:
 npm install earley-parser
 ```
 
-API Reference documentation forthcoming.
+Then see the [API Reference
+page](https://lurchmath.github.io/earley-parser/site/api-reference) for what
+to do next.
 
 ## Repository contents
 
@@ -27,4 +29,5 @@ API Reference documentation forthcoming.
 
 ## Documentation
 
-Documentation forthcoming.
+[See our documentation site
+here.](https://lurchmath.github.io/earley-parser/)
