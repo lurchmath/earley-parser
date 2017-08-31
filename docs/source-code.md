@@ -5,7 +5,7 @@
 
 The code in [the repository](https://github.com/lurchmath/earley-parser)
 resides in [one
-file](https://github.com/lurchmath/openmath-js/blob/master/earley-parser.litcoffee),
+file](https://github.com/lurchmath/earley-parser/blob/master/earley-parser.litcoffee),
 written in [Literate CoffeeScript](http://coffeescript.org/#literate).
 
 ## Changing the source

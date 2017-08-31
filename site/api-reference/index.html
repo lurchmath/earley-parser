@@ -82,7 +82,10 @@
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#api-reference">API Reference</a></li>
             <li><a href="#getting-started">Getting started</a></li>
-            <li><a href="#this-api-reference-is-not-complete">This API Reference is not complete!</a></li>
+            <li><a href="#tokenizing">Tokenizing</a></li>
+            <li><a href="#parsing">Parsing</a></li>
+            <li><a href="#miscellany">Miscellany</a></li>
+            <li><a href="#more-examples">More Examples</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
@@ -108,12 +111,200 @@ Grammar = require( &quot;earley-parser&quot; ).Grammar;
 
 <p>After that, any of the example code snippets in this documentation should
 function as-is.</p>
+<h2 id="tokenizing">Tokenizing</h2>
+<p>Traditionally, parsing text is split first into a "tokenization" phase, in
+which chunks of text are recognized as atomic units, and thus the string
+becomes an array of its substrings, each of size 1 or greater, followed by
+the parsing phase, which operates on that flat array, arranging it into a
+tree structure.</p>
+<p>For example, in standard arithmetic, the text "1+23*5" might first be
+tokenized into the array <code>[ "1", "+", "23", "*", "5" ]</code>, and then parsed
+into the (prefix-notation) tree structure
+<code>[ "+", "1", [ "*", "23", "5" ] ]</code>.</p>
+<p>A tokenizer is therefore an ordered list of regular expressions for
+detecting tokens, popping them off of an input string, and then possibly
+manipulating them before adding them to a growing array of tokens found in
+the string.  This module provides a class for creating tokenizers.</p>
+<h3 id="constructor">Constructor</h3>
+<p>The constructor takes no parameters, so it is very simple to use.</p>
+<pre><code class="js">T = new Tokenizer();
+</code></pre>
+
+<h3 id="adding-types-to-a-tokenizer">Adding types to a tokenizer</h3>
+<p>There is precisely one function for adding types to the tokenizer.  Note,
+however, that types are checked in the order in which they were added to the
+tokenizer, so when you call this function repeatedly to add various types of
+tokens, you should take care to order the calls correctly.</p>
+<p>For instance, perhaps you are writing a tokenizer for simple algebraic
+expressions, in which a sequence of letters will be seen as the
+multiplication of variables (i.e., "abc" means "a times b times c") except
+for a few special sequences of letters such as "sin" and "cos" and "pi" and
+perhaps a few others.</p>
+<p>It is important to add the tokens for "sin" and "cos" and so on first, and
+then the generic single-letter token thereafter, so that the special cases
+have a chance to be applied before the general case.  Otherwise the general
+case would catch all sequences of letters, and the special cases would
+never have a chance to be applied.</p>
+<p>The function signature looks like so:</p>
+<pre><code class="js">T.addType( regexp, formatter );
+</code></pre>
+
+<p>The two parameters are documented thoroughly in
+<a href="https://github.com/lurchmath/earley-parser/blob/master/earley-parser.litcoffee#tokenizing">the source code documentation</a>, so I do not repeat the information here.</p>
+<h3 id="tokenizing_1">Tokenizing</h3>
+<p>To tokenize text, simply call <code>T.tokenize( input )</code> on the text.</p>
 <p>Example:</p>
 <div class="runnable-example">
-G = new Grammar( 'name your grammar here' );
-typeof( G.addRule )
+T = new Tokenizer();
+T.addType( /sin/ );
+T.addType( /cos/ );
+T.addType( /pi/ );
+T.addType( /[a-z]/, function ( name ) { return "Variable:" + name; } );
+T.addType( /\s/, function () { return null; } );
+console.log( T.tokenize( 'sin x' ) );
+console.log( T.tokenize( 'cospiy' ) );
 </div>
 
+<h2 id="parsing">Parsing</h2>
+<p>A grammar is a set of rules defining the language to parse.  For more
+information on context-free grammars, see <a href="https://en.wikipedia.org/wiki/Earley_parser">the Wikipedia article on the
+Earley parser</a>.</p>
+<p>For the sake of having a concrete running example in this section, let's
+assume we want to want to create the extremely simple grammar used as <a href="https://en.wikipedia.org/wiki/Earley_parser#Example">an
+example in that same
+article</a>.  We will make
+one modification: we will accept any integer, rather than just the four
+digits in that example.  Our grammar can thus be summarized as the following
+rules.</p>
+<ul>
+<li>P ::= S</li>
+<li>S ::= S+M | M</li>
+<li>M ::= M*T | T</li>
+<li>T ::= any integer</li>
+</ul>
+<p>We can represent the same grammar without the | symbol by separating single
+lines into two separate lines.</p>
+<ul>
+<li>P ::= S</li>
+<li>S ::= S+M</li>
+<li>S ::= M</li>
+<li>M ::= M*T</li>
+<li>M ::= T</li>
+<li>T ::= any integer</li>
+</ul>
+<p>Either way of representing a grammar is acceptable, and supported by this
+module.  See <a href="#adding-grammar-rules">the section on specifying grammar
+rules</a>, below.</p>
+<h3 id="constructor_1">Constructor</h3>
+<p>There is just one constructor for grammars, and it takes as its sole
+argument the name of the start nonterminal.  This need not be a single
+capital letter, as it is in the example above; nonterminals can have any
+word as their name.</p>
+<pre><code class="js">G = new Grammar( 'P' );
+</code></pre>
+
+<h3 id="setting-default-options">Setting default options</h3>
+<p>After constructing a new grammar, you can choose to set some default options
+that will govern its behavior.  Any of these can be overridden in any call
+to the parse function, later, but you can set defaults here if you plan to
+need them often.  You call <code>G.setOption( name, value )</code> to set the default
+value for any option.</p>
+<p>The options are documented thoroughly in <a href="https://github.com/lurchmath/earley-parser/blob/master/earley-parser.litcoffee#earley-algorithm">the source code
+documentation</a>,
+so I do not repeat that information here.  Examples of the output produced
+by the various options appears in <a href="#running-the-parser">the parsing
+section</a>, below.</p>
+<h3 id="adding-grammar-rules">Adding grammar rules</h3>
+<p>A grammar rule requires a left-hand side, which must be a single
+nonterminal, represented by a string.  Its right-hand side is typically an
+array.  For instance, the grammar rule M ::= M<em>T has M as its left-hand side
+and the three-element array M, </em>, and T as its right hand side.</p>
+<p>The elements on the right hand side come in two types.  There are other
+nonterminals (such as M and T) and there are terminals (the symbol <em>, in
+this example).  Nonterminals are represented as strings, and terminals as
+regular expressions.  Thus to create the grammar rule M ::= M</em>T, we would
+use <code>'M'</code> as the left-hand side and <code>[ 'M', /\*/, 'T' ]</code> as the right-hand
+side.</p>
+<p>Our complete example grammar can then be created as follows.</p>
+<pre><code class="js">G = new Grammar( 'P' );
+G.addRule( 'P', [ 'S' ] );
+G.addRule( 'S', [ 'S', /\+/, 'M' ] );
+G.addRule( 'S', [ 'M' ] );
+G.addRule( 'M', [ 'M', /\*/, 'T' ] );
+G.addRule( 'M', [ 'T' ] );
+G.addRule( 'T', [ /-?[0-9]+/ ] );
+</code></pre>
+
+<p>There are a few things to improve upon here.</p>
+<ol>
+<li>We may combine rules that have the same left-hand side, just be listing
+    the right-hand sides one after the other.</li>
+<li>We may express a one-element array containing a terminal by the regular
+    expression alone, omitting the enclosing array.</li>
+<li>We may express a right-hand side consisting exclusively of one or more
+    nonterminals by writing it as a single string, with the names of the
+    nonterminals separated by spaces.</li>
+</ol>
+<p>This reduces our grammar somewhat.</p>
+<pre><code class="js">G = new Grammar( 'P' );
+G.addRule( 'P', 'S' );
+G.addRule( 'S', [ 'S', /\+/, 'M' ], 'M' );
+G.addRule( 'M', [ 'M', /\*/, 'T' ], 'T' );
+G.addRule( 'T', /-?[0-9]+/ );
+</code></pre>
+
+<p>The P in this grammar is redundant; we could have left it out and declared
+our grammar to start with S, but I leave it in to be consistent with the
+Wikipedia article from which it was taken.</p>
+<h3 id="running-the-parser">Running the parser</h3>
+<p>We can then parse text by passing it to the grammar's <code>parse</code> member
+function.</p>
+<div class="runnable-example">
+T = new Tokenizer();
+T.addType( /-?[0-9]+/ );
+T.addType( /[+*]/ );
+T.addType( /\s/, function () { return null; } );
+G = new Grammar( 'P' );
+G.setOption( 'tokenizer', T );
+// Comment out either of these lines and re-run to see their effects:
+G.setOption( 'addCategories', false );
+G.setOption( 'collapseBranches', true );
+G.addRule( 'P', 'S' );
+G.addRule( 'S', [ 'S', /\+/, 'M' ], 'M' );
+G.addRule( 'M', [ 'M', /\*/, 'T' ], 'T' );
+G.addRule( 'T', /-?[0-9]+/ );
+JSON.stringify( G.parse( '15 + -2 * 9' ), null, 2 );
+</div>
+
+<p>The result of the <code>parse</code> function is an array of valid parsings.  In this
+case, it has only one element, because there is only one way the expression
+could be parsed.  For more complex grammars with ambiguities, more than one
+result may be returned.</p>
+<p>To override options chosen with <code>setOption()</code>, call the parse function with
+an optional second argument, an object whose keys and values override the
+existing options.  Example:</p>
+<pre><code class="js">G.parse( 'text', { collapseBranches : true } );
+</code></pre>
+
+<h2 id="miscellany">Miscellany</h2>
+<p>This module extends the global <code>JSON</code> object with a routine that can compare
+two JSON structures for structural equality.  Two atomic values are equal if
+they are actually equal, two arrays are equal if they have the same lengths
+and their corresponding entries are equal, and two objects are equal if they
+have the same keys and the corresponding values in each are equal.</p>
+<div class="runnable-example">
+JSON.equals( [ 1, 2, { 3 : 4 } ], [ 1, 2, { 3 : 4 } ] );
+</div>
+
+<div class="runnable-example">
+JSON.equals( { a : 5 }, { b : 5 } );
+</div>
+
+<h2 id="more-examples">More Examples</h2>
+<p>In addition to the brief examples shown in this file, <a href="https://github.com/lurchmath/earley-parser/blob/master/earley-parser-spec.litcoffee">the test suite in the
+source code
+repository</a>
+is (naturally) a large set of examples of how the module works.</p>
 <script src="https://embed.runkit.com"></script>
 
 <script>
@@ -127,10 +318,7 @@ for ( var i = 0 ; i < elements.length ; i++ ) {
         preamble: 'Tokenizer = require( "earley-parser" ).Tokenizer;\nGrammar = require( "earley-parser" ).Grammar;'
     } );
 }
-</script>
-
-<h2 id="this-api-reference-is-not-complete">This API Reference is not complete!</h2>
-<p>Further documentation forthcoming.</p></div>
+</script></div>
         </div>
 
         <footer class="col-md-12">
