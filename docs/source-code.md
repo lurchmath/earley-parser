@@ -26,5 +26,5 @@ accessible.
 
 To import the source into your project, you can include it directly from a
 CDN at [this
-URL](https://cdn.jsdelivr.net/npm/earley-parser@1.0.0/earley-parser.js). There is a
+URL](https://cdn.jsdelivr.net/npm/earley-parser@1/earley-parser.js). There is a
 source map file in the same folder that your browser should detect.

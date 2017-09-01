@@ -10,7 +10,7 @@ directly](https://raw.githubusercontent.com/lurchmath/earley-parser/master/earle
 or import from a CDN with the following one-liner.
 
 ```html
-<script src='https://cdn.jsdelivr.net/npm/earley-parser@1.0.0/earley-parser.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/earley-parser@1/earley-parser.js'></script>
 ```
 
 ### From the command line
