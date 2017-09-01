@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Earley Parser Documentation\n\n\nGet started now\n\n\nTo import this code via a CDN or \nnpm\n, check out the \nAPI Reference\nPage\n.\n\n\nBackground\n\n\nThe \nEarley Parsing algorithm\n\ncan parse strings according to any context-free grammar.  This module lets\nthe user define tokens and grammar rules, then pass strings in to be\ntokenized and parsed, or just pass in pre-tokenized arrays to be parsed.\n\n\nParse trees are returned as nested JavaScript arrays, but the user can also\nprovide callbacks that construct other kinds of hierarchical structures (or\ndo computation) instead of building parse trees.\n\n\nMore Information\n\n\nThe following additional information is available in this documentation.\n\n\n\n\nSource Code\n - see the source and/or import it into your\n   own project\n\n\nAPI Reference\n - how to use the various functions and\n   objects provided", 
+            "text": "Earley Parser Documentation\n\n\nGet started now\n\n\nTo import this code via a CDN or \nnpm\n, check out the \nAPI Reference\nPage\n.\n\n\nBackground\n\n\nThe \nEarley Parsing algorithm\n\ncan parse strings according to any context-free grammar.  This module lets\nthe user define tokens and grammar rules, then pass strings in to be\ntokenized and parsed, or just pass in pre-tokenized arrays to be parsed.\n\n\nParse trees are returned as nested JavaScript arrays, but the user can also\nprovide callbacks that construct other kinds of hierarchical structures (or\ndo computation) instead of building parse trees.\n\n\nMore Information\n\n\nThe following additional information is available in this documentation.\n\n\n\n\nSource Code\n - see the source and/or import it into your\n   own project\n\n\nAPI Reference\n - how to use the various functions and\n   objects provided\n\n\n\n\nMore documentation may be added here in the future. For now you can \nview this repository \n.", 
             "title": "Home"
         }, 
         {
@@ -22,7 +22,7 @@
         }, 
         {
             "location": "/#more-information", 
-            "text": "The following additional information is available in this documentation.   Source Code  - see the source and/or import it into your\n   own project  API Reference  - how to use the various functions and\n   objects provided", 
+            "text": "The following additional information is available in this documentation.   Source Code  - see the source and/or import it into your\n   own project  API Reference  - how to use the various functions and\n   objects provided   More documentation may be added here in the future. For now you can  view this repository  .", 
             "title": "More Information"
         }, 
         {
