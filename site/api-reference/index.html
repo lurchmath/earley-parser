@@ -86,6 +86,7 @@
             <li><a href="#parsing">Parsing</a></li>
             <li><a href="#miscellany">Miscellany</a></li>
             <li><a href="#more-examples">More Examples</a></li>
+            <li><a href="#webworker-api">WebWorker API</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
@@ -111,6 +112,14 @@ Grammar = require( &quot;earley-parser&quot; ).Grammar;
 
 <p>After that, any of the example code snippets in this documentation should
 function as-is.</p>
+<h3 id="in-a-webworker">In a <a href="https://www.w3.org/TR/workers/">WebWorker</a></h3>
+<p>To place this script in a WebWorker, you will need to download <a href="https://raw.githubusercontent.com/lurchmath/earley-parser/master/earley-parser.js">its source
+file</a> and place it in your project's web space.</p>
+<p>Your script can then create the worker as follows.</p>
+<pre><code class="js">W = new Worker( &quot;path/to/earley-parser.js&quot; );
+</code></pre>
+
+<p>This exposes an asynchronous API documented <a href="#webworker-api">below</a>.</p>
 <h2 id="tokenizing">Tokenizing</h2>
 <p>Traditionally, parsing text is split first into a "tokenization" phase, in
 which chunks of text are recognized as atomic units, and thus the string
@@ -305,6 +314,123 @@ JSON.equals( { a : 5 }, { b : 5 } );
 source code
 repository</a>
 is (naturally) a large set of examples of how the module works.</p>
+<h2 id="webworker-api">WebWorker API</h2>
+<p>This section assumes that you have read and understood the API for the
+non-WebWorker use of the module, as given in the previous sections.  It also
+assumes that you've read the <a href="#getting-started">getting started section</a> so
+that you know how to import this module into a WebWorker.</p>
+<p>Assuming you've created a worker <code>W</code> as in that section, you can then
+interact with it through five types of messages.</p>
+<h3 id="create-a-new-parser">Create a new parser</h3>
+<pre><code class="js">W.postMessage( [ &quot;newParser&quot;, &quot;name here&quot;, &quot;start token here&quot; ] );
+</code></pre>
+
+<p>This creates a new parser keyed by the given name, with no tokenizer,
+overwriting any old one with the same name.</p>
+<p><em>Example:</em></p>
+<pre><code class="js">W.postMessage( [ &quot;newParser&quot;, &quot;math expressions&quot;, &quot;term&quot; ] );
+// No rules in this parser yet, just the parser itself.
+</code></pre>
+
+<h3 id="add-a-token-type">Add a token type</h3>
+<pre><code class="js">W.postMessage( [ &quot;addType&quot;, &quot;parser name&quot;, &quot;string of token regexp&quot;,
+                 &quot;optional string of transform function code&quot; ] );
+</code></pre>
+
+<p>This adds a token type to the parser's tokenizer.  If the parser does not
+yet have a tokenizer, this first creates a new one.</p>
+<p>When adding a type to a tokenizer (as documented above) we normally provide
+the regular expression for recognizing that token.  But regular expressions
+cannot be passed to WebWorkers, and so just their source as a string should
+be passed instead.  See the example below.</p>
+<p>Token types can come with an optional transform function to be applied to
+any token recognized of that type.  That fourth parameter is optional and
+may be omitted from the form shown above.  If present, it should be the
+string representation of the function, so it will survive passage to the
+WebWorker.  See the example below.</p>
+<p><em>Example:</em></p>
+<pre><code class="js">whiteSpaceRegExp = /\s+/;
+deleteWhiteSpace = function () { return null; }
+W.postMessage( [ &quot;addType&quot;, &quot;math expressions&quot;, whiteSpaceRegExp.source,
+                 String( deleteWhiteSpace ) ] );
+</code></pre>
+
+<h3 id="add-a-grammar-rule">Add a grammar rule</h3>
+<pre><code class="js">W.postMessage( [ &quot;addRule&quot;, &quot;parser name&quot;, &quot;category&quot;, sequences... ] );
+</code></pre>
+
+<p>This adds one or more rules to the parser.  Sending a message of this type
+leads directly to function calls of <code>addRule()</code> as documented above.  Thus
+you can structure your sequences the same as in calls to <code>addRule()</code>,
+except for the following change.</p>
+<p>Because regular expressions cannot be passed to WebWorkers, we modify the
+convention for the sequences.</p>
+<ul>
+<li>Where you would have represented a category by a string containing its
+   name <code>"cat"</code> you now represent it by a string containing its name, plus
+   the prefix to show that it is a category, <code>"c:cat"</code>.</li>
+<li>Where you would have represented a terminal by a regular expression that
+   matches the terminal <code>/fo+/</code>, you now represent it by a string
+   containing the regular expression's source, plus the prefix to show that
+   it is a terminal, <code>"t:fo+"</code>.</li>
+</ul>
+<p><em>Example:</em></p>
+<pre><code class="js">W.postMessage( [ &quot;addRule&quot;, &quot;math expressions&quot;, &quot;integer&quot;, &quot;t:-?[0-9]+&quot; ] );
+</code></pre>
+
+<h3 id="parse-text-using-a-parser-defined-earlier">Parse text using a parser defined earlier</h3>
+<pre><code class="js">W.onmessage = function ( event ) {
+    console.log( &quot;Heard back from the worker with this:&quot;, event.data );
+}
+W.sendMessage( [ &quot;parser name&quot;, &quot;text to parse&quot; ] );
+</code></pre>
+
+<p>This instructs the worker to parse the given text with the named parser,
+which must have been defined earlier by messages of the "newParser",
+"addType", and "addRule" types.</p>
+<p>The results are posted back to the main thread using <code>postMessage()</code> from
+within the worker thread, and thus the <code>onmessage</code> handler must be
+implemented, as shown in the example code above.  The data in the <code>event</code>
+will be an array containing all valid parse trees for the given text in the
+grammar of the named parser.</p>
+<p>The trees are represented as nested JavaScript arrays whose first ("head")
+elements state the grammar categories contained in the grammar.  For
+example, one parse tree might look like the following.  (Keep in mind that
+even if this were the only valid parse tree, it would still be wrapped in
+another array to show that it was the one valid parsing of the given text.)</p>
+<pre><code class="json">[
+    &quot;sum&quot;,
+    [ &quot;integer&quot;, &quot;5&quot; ],
+    [ &quot;product&quot;, [ &quot;integer&quot;, &quot;6&quot; ], [ &quot;variable&quot;, &quot;x&quot; ] ]
+]
+</code></pre>
+
+<p>If you choose not to have the module do tokenization for you, you can just
+not send any messages of the "addToken" type, and then pass an array of
+tokens in place of the string of text to parse.</p>
+<p><em>Example:</em></p>
+<pre><code class="js">var textToParse = &quot;12-6/x&quot;;
+W.onmessage = function ( event ) {
+    console.log( &quot;The valid parse trees for&quot;, textToParse, &quot;are:&quot; );
+    if ( event.data.length == 0 )
+        console.log( &quot;(none)&quot; );
+    else
+        for ( var i = 0 ; i &lt; event.data.length ; i++ )
+            console.log( (i+1) + &quot;:&quot;, event.data[i] );
+}
+W.postMessage( [ &quot;parse&quot;, &quot;math expression&quot;, textToParse ] );
+</code></pre>
+
+<h3 id="delete-an-old-parser">Delete an old parser</h3>
+<pre><code class="js">W.postMessage( [ &quot;deleteParser&quot;, &quot;name here&quot; ] );
+</code></pre>
+
+<p>Lets the worker reclaim memory by discarding parsers about which no further
+messages will be passed.</p>
+<p><em>Example:</em></p>
+<pre><code class="js">W.postMessage( [ &quot;deleteParser&quot;, &quot;math expression&quot; ] );
+</code></pre>
+
 <script src="https://embed.runkit.com"></script>
 
 <script>

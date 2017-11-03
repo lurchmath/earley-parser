@@ -31,6 +31,19 @@ Grammar = require( "earley-parser" ).Grammar;
 After that, any of the example code snippets in this documentation should
 function as-is.
 
+### In a [WebWorker](https://www.w3.org/TR/workers/)
+
+To place this script in a WebWorker, you will need to download [its source
+file](https://raw.githubusercontent.com/lurchmath/earley-parser/master/earley-parser.js) and place it in your project's web space.
+
+Your script can then create the worker as follows.
+
+```js
+W = new Worker( "path/to/earley-parser.js" );
+```
+
+This exposes an asynchronous API documented [below](#webworker-api).
+
 ## Tokenizing
 
 Traditionally, parsing text is split first into a "tokenization" phase, in
@@ -267,6 +280,156 @@ In addition to the brief examples shown in this file, [the test suite in the
 source code
 repository](https://github.com/lurchmath/earley-parser/blob/master/earley-parser-spec.litcoffee)
 is (naturally) a large set of examples of how the module works.
+
+## WebWorker API
+
+This section assumes that you have read and understood the API for the
+non-WebWorker use of the module, as given in the previous sections.  It also
+assumes that you've read the [getting started section](#getting-started) so
+that you know how to import this module into a WebWorker.
+
+Assuming you've created a worker `W` as in that section, you can then
+interact with it through five types of messages.
+
+### Create a new parser
+
+```js
+W.postMessage( [ "newParser", "name here", "start token here" ] );
+```
+
+This creates a new parser keyed by the given name, with no tokenizer,
+overwriting any old one with the same name.
+
+*Example:*
+
+```js
+W.postMessage( [ "newParser", "math expressions", "term" ] );
+// No rules in this parser yet, just the parser itself.
+```
+
+### Add a token type
+
+```js
+W.postMessage( [ "addType", "parser name", "string of token regexp",
+                 "optional string of transform function code" ] );
+```
+
+This adds a token type to the parser's tokenizer.  If the parser does not
+yet have a tokenizer, this first creates a new one.
+
+When adding a type to a tokenizer (as documented above) we normally provide
+the regular expression for recognizing that token.  But regular expressions
+cannot be passed to WebWorkers, and so just their source as a string should
+be passed instead.  See the example below.
+
+Token types can come with an optional transform function to be applied to
+any token recognized of that type.  That fourth parameter is optional and
+may be omitted from the form shown above.  If present, it should be the
+string representation of the function, so it will survive passage to the
+WebWorker.  See the example below.
+
+*Example:*
+
+```js
+whiteSpaceRegExp = /\s+/;
+deleteWhiteSpace = function () { return null; }
+W.postMessage( [ "addType", "math expressions", whiteSpaceRegExp.source,
+                 String( deleteWhiteSpace ) ] );
+```
+
+### Add a grammar rule
+
+```js
+W.postMessage( [ "addRule", "parser name", "category", sequences... ] );
+```
+
+This adds one or more rules to the parser.  Sending a message of this type
+leads directly to function calls of `addRule()` as documented above.  Thus
+you can structure your sequences the same as in calls to `addRule()`,
+except for the following change.
+
+Because regular expressions cannot be passed to WebWorkers, we modify the
+convention for the sequences.
+
+ * Where you would have represented a category by a string containing its
+   name `"cat"` you now represent it by a string containing its name, plus
+   the prefix to show that it is a category, `"c:cat"`.
+ * Where you would have represented a terminal by a regular expression that
+   matches the terminal `/fo+/`, you now represent it by a string
+   containing the regular expression's source, plus the prefix to show that
+   it is a terminal, `"t:fo+"`.
+
+*Example:*
+
+```js
+W.postMessage( [ "addRule", "math expressions", "integer", "t:-?[0-9]+" ] );
+```
+
+### Parse text using a parser defined earlier
+
+```js
+W.onmessage = function ( event ) {
+    console.log( "Heard back from the worker with this:", event.data );
+}
+W.sendMessage( [ "parser name", "text to parse" ] );
+```
+
+This instructs the worker to parse the given text with the named parser,
+which must have been defined earlier by messages of the "newParser",
+"addType", and "addRule" types.
+
+The results are posted back to the main thread using `postMessage()` from
+within the worker thread, and thus the `onmessage` handler must be
+implemented, as shown in the example code above.  The data in the `event`
+will be an array containing all valid parse trees for the given text in the
+grammar of the named parser.
+
+The trees are represented as nested JavaScript arrays whose first ("head")
+elements state the grammar categories contained in the grammar.  For
+example, one parse tree might look like the following.  (Keep in mind that
+even if this were the only valid parse tree, it would still be wrapped in
+another array to show that it was the one valid parsing of the given text.)
+```json
+[
+    "sum",
+    [ "integer", "5" ],
+    [ "product", [ "integer", "6" ], [ "variable", "x" ] ]
+]
+```
+
+If you choose not to have the module do tokenization for you, you can just
+not send any messages of the "addToken" type, and then pass an array of
+tokens in place of the string of text to parse.
+
+*Example:*
+
+```js
+var textToParse = "12-6/x";
+W.onmessage = function ( event ) {
+    console.log( "The valid parse trees for", textToParse, "are:" );
+    if ( event.data.length == 0 )
+        console.log( "(none)" );
+    else
+        for ( var i = 0 ; i < event.data.length ; i++ )
+            console.log( (i+1) + ":", event.data[i] );
+}
+W.postMessage( [ "parse", "math expression", textToParse ] );
+```
+
+### Delete an old parser
+
+```js
+W.postMessage( [ "deleteParser", "name here" ] );
+```
+
+Lets the worker reclaim memory by discarding parsers about which no further
+messages will be passed.
+
+*Example:*
+
+```js
+W.postMessage( [ "deleteParser", "math expression" ] );
+```
 
 <script src="https://embed.runkit.com"></script>
 <script>

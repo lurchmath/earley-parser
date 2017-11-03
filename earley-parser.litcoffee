@@ -559,17 +559,19 @@ creates a new parser.
 
 Clients can add types to the parser's tokenizer (which is created if there
 wasn't one before) with messages of the form
-`[ 'addType', 'parser name', 'regular expression' ]`.  With one
-exception, these messages are converted directly into function calls of
+`[ 'addType', 'parser name', 'regular expression' ]`.  With two
+exceptions, these messages are converted directly into function calls of
 `addType()` in the tokenizer (so see its documentation above).
 
-There are two exceptions.  First, because regular expressions cannot be
-passed to workers, the client must pass `regexp.source` instead, and on this
-end, the `RegExp` constructor will be called to rebuild the object. Second,
-because functions cannot be passed to workers, the client must convert the
-function to a string (e.g., `String(f)` or CoffeeScript `"#{f}"`).  It will
-be rebuilt into a function on this side, obviouslw without its original
-environment/scope.
+The exceptions:  First, because regular expressions cannot be passed to
+workers, the client must pass `regexp.source` instead, and on this end, the
+`RegExp` constructor will be called to rebuild the object.
+
+Second, there is an optional fourth argument, the transformation function to
+be applied to any token encountered of this type.  Because functions cannot
+be passed to workers, the client must convert the function to a string
+(e.g., `String(f)` or CoffeeScript `"#{f}"`).  It will be rebuilt into a
+function on this side, obviouslw without its original environment/scope.
 
                 when 'addType'
                     [ command, name, regexp, func ] = event.data
