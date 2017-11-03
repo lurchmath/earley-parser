@@ -19,6 +19,7 @@
         "gulp-shell": "^0.6.3",
         "gulp-sourcemaps": "^2.6.1",
         "gulp-uglify": "^3.0.0",
-        "pump": "^1.0.2"
+        "pump": "^1.0.2",
+        "webworker-threads": "^0.7.13"
     }
 }

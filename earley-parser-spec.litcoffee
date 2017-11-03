@@ -1520,3 +1520,70 @@ one, not the regular hyphen typed with a keyboard.
             expect( node.equals OM.simple \
                 'limit1.limit(nums1.infinity,limit1.both_sides,' + \
                 'fns1.lambda[x,transc1.arctan(x)])' ).toBeTruthy()
+
+## WebWorker support
+
+This section tests that the five functions in the WebWorker API work.  We
+test only a simple parsing problem, because we're just checking to be sure
+that the parser can still be accessed from a simulated WebWorker
+environment.
+
+    describe 'WebWorker support', ->
+
+        { Worker } = require 'webworker-threads'
+        worker = null
+        beforeEach ->
+            worker = new Worker 'earley-parser.js'
+            worker.onmessage = ( event ) -> worker.listener? event
+        asyncTestParse = ( name, text, testfunc ) ->
+            worker.listener = testfunc
+            worker.postMessage [ 'parse', name, text ]
+
+### should work for a small parser
+
+We just test to see if we can set up simple parser and parse some simple
+text.
+
+        it 'should work for a small parser', ( done ) ->
+            worker.postMessage [ 'newParser', 'test', 'expr' ]
+            worker.postMessage [ 'addType', 'test', /\s+/.source,
+                                 "#{-> null}" ]
+            worker.postMessage [ 'addType', 'test',
+                                 /[a-zA-Z_][a-zA-Z_0-9]*/.source ]
+            worker.postMessage [ 'addType', 'test',
+                                 /\.[0-9]+|[0-9]+\.?[0-9]*/.source ]
+            worker.postMessage [ 'addType', 'test',
+                                 /"(?:[^\\"]|\\\\|\\")*"/.source ]
+            worker.postMessage [ 'addType', 'test', /[()+/*-]/.source ]
+            worker.postMessage [ 'addRule', 'test', 'expr', 'c:sum' ]
+            worker.postMessage [ 'addRule', 'test', 'atomic',
+                                 't:[a-zA-Z_][a-zA-Z_0-9]*' ]
+            worker.postMessage [ 'addRule', 'test', 'atomic',
+                                 't:\\.[0-9]+|[0-9]+\\.?[0-9]*' ]
+            worker.postMessage [ 'addRule', 'test', 'atomic',
+                                 't:"(?:[^\\\\"]|\\\\\\\\|\\\\")*"' ]
+            worker.postMessage [ 'addRule', 'test', 'atomic',
+                                 [ 't:\\(', 'c:sum', 't:\\)' ] ]
+            worker.postMessage [ 'addRule', 'test', 'prod',
+                                 [ 'c:atomic' ] ]
+            worker.postMessage [ 'addRule', 'test', 'prod',
+                                 [ 'c:prod', 't:[*\\/]', 'c:atomic' ] ]
+            worker.postMessage [ 'addRule', 'test', 'sum',
+                                 [ 'c:prod' ] ]
+            worker.postMessage [ 'addRule', 'test', 'sum',
+                                 [ 'c:sum', 't:[+-]', 'c:prod' ] ]
+            asyncTestParse 'test', 'ident - 7.8/other', ( result ) ->
+                expect( result.data ).toEqual [
+                    [ 'expr',
+                        [ 'sum',
+                            [ 'sum', [ 'prod', [ 'atomic', 'ident' ] ] ],
+                            '-',
+                            [ 'prod',
+                                [ 'prod', [ 'atomic', '7.8' ] ],
+                                '/',
+                                [ 'atomic', 'other' ]
+                            ]
+                        ]
+                    ]
+                ]
+                done()

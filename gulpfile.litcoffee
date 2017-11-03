@@ -26,7 +26,7 @@ Create "tests" task to run unit tests.
     gulp.task 'test', shell.task [
         'node'
         './node_modules/jasmine-node/lib/jasmine-node/cli.js'
-        '--verbose --coffee'
+        '--verbose --coffee --forceexit'
         'earley-parser-spec.litcoffee'
     ].join ' '
 

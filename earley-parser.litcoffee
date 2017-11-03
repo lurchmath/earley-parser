@@ -466,12 +466,6 @@ matches the beginning of the remaining input, null is returned.
                 if input.length is original then return null
             result
 
-The following step ensures that this file works in Node.js, for testing.
-
-    if exports?
-        exports.Grammar = Grammar
-        exports.Tokenizer = Tokenizer
-
 ## Debugging
 
 The following debugging routines are used in some of the code above.
@@ -532,3 +526,108 @@ Otherwise, they are.
         for key in xkeys
             if not JSON.equals x[key], y[key] then return no
         yes
+
+## Context
+
+The following step ensures that this file works in Node.js, for testing.
+
+    if exports?
+        exports.Grammar = Grammar
+        exports.Tokenizer = Tokenizer
+
+And the following lines test to see if this function is running in a
+[WebWorker](https://www.w3.org/TR/workers/), and if so, they install an
+event handler for messages posted from the main thread, which exposes the
+key API from this module to the outside, through message-passing.
+
+    if WorkerGlobalScope? or self?.importScripts?
+
+We keep track of a set of named parsers in this object.  Clients can create
+them by passing messages to this thread, as defined below.
+
+        ParserStore = { }
+        self.addEventListener 'message', ( event ) ->
+            switch event.data[0]
+
+Receiving a message of the form
+`[ 'newParser', 'parser name', 'start token' ]`
+creates a new parser.
+
+                when 'newParser'
+                    [ command, name, startToken ] = event.data
+                    ParserStore[name] = new Grammar startToken
+
+Clients can add types to the parser's tokenizer (which is created if there
+wasn't one before) with messages of the form
+`[ 'addType', 'parser name', 'regular expression' ]`.  With one
+exception, these messages are converted directly into function calls of
+`addType()` in the tokenizer (so see its documentation above).
+
+There are two exceptions.  First, because regular expressions cannot be
+passed to workers, the client must pass `regexp.source` instead, and on this
+end, the `RegExp` constructor will be called to rebuild the object. Second,
+because functions cannot be passed to workers, the client must convert the
+function to a string (e.g., `String(f)` or CoffeeScript `"#{f}"`).  It will
+be rebuilt into a function on this side, obviouslw without its original
+environment/scope.
+
+                when 'addType'
+                    [ command, name, regexp, func ] = event.data
+                    if not ( P = ParserStore[name] )? then return
+                    funcre = ///
+                        \s*function\s*
+                        \(((?:[a-zA-Z0-9,]|\s)*)\)
+                        \s*\{\s*
+                        ((?:.|\n)*)
+                        \}\s*$
+                        ///
+                    if func
+                        match = funcre.exec func
+                        match[1] = match[1].replace /\s/g, ''
+                        func = new Function match[1..]...
+                    P.defaults.tokenizer ?= new Tokenizer()
+                    P.defaults.tokenizer.addType ( new RegExp regexp ), func
+
+Clients can add rules to the parser with messages of the form
+`[ 'addRule', 'parser name', 'category', sequences... ]`.  These
+messages are converted directly into function calls of `addRule()` in the
+parser, so see its documentation above.
+
+Because regular expressions cannot be passed to WebWorkers, we modify the
+convention in storing the sequences.  Each item in a sequence must be of
+the form "c:category name" or "t:terminal regexp" so that category names
+and regular expressions for terminals can be distinguished.  We convert
+them to strings or regular expressions before calling `addRule()`.
+
+                when 'addRule'
+                    [ command, name, category, sequences... ] = event.data
+                    if not ( P = ParserStore[name] )? then return
+                    for sequence, index in sequences
+                        if /^t:/.test sequence
+                            sequences[index] = [ new RegExp sequence[2..] ]
+                        if sequence not instanceof Array
+                            sequences[index] = sequence =
+                                "#{sequence}".split ' '
+                        for entry, index2 in sequence
+                            rest = entry[2..]
+                            if entry[0] is 't'
+                                rest = new RegExp "^#{rest}$"
+                            sequence[index2] = rest
+                    P.addRule category, sequences...
+
+Clients passing messages of the form `[ 'parse', 'parser name', 'text' ]`
+are requesting the named parser to parse the given text and then send a
+message back containing the results (which may be an empty list, as in the
+documentation of the `parse()` function in the `Parser` class, above).
+
+                when 'parse'
+                    [ command, name, text ] = event.data
+                    if not ( P = ParserStore[name] )? then return
+                    self.postMessage P.parse text
+
+Clients can pass a message `[ 'deleteParser', 'parser name' ]` to remove
+the named parser from memory.
+
+                when 'deleteParser'
+                    [ command, name ] = event.data
+                    delete ParserStore[name]
