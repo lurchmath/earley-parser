@@ -1,7 +1,7 @@
 
 # Earley Parser
 
-![Build status](https://travis-ci.org/lurchmath/earley-parser.svg?branch=master)
+[![Build Status](https://travis-ci.org/lurchmath/earley-parser.svg?branch=master)](https://travis-ci.org/lurchmath/earley-parser)
 
 JavaScript implementation of [the Earley parsing algorithm](https://en.wikipedia.org/wiki/Earley_parser)
 
