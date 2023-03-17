@@ -52,7 +52,7 @@ becomes an array of its substrings, each of size 1 or greater, followed by
 the parsing phase, which operates on that flat array, arranging it into a
 tree structure.
 
-For example, in standard arithmetic, the text "1+23*5" might first be
+For example, in standard arithmetic, the text `"1+23*5"` might first be
 tokenized into the array `[ "1", "+", "23", "*", "5" ]`, and then parsed
 into the (prefix-notation) tree structure
 `[ "+", "1", [ "*", "23", "5" ] ]`.
@@ -129,20 +129,20 @@ one modification: we will accept any integer, rather than just the four
 digits in that example.  Our grammar can thus be summarized as the following
 rules.
 
- * P ::= S
- * S ::= S+M | M
- * M ::= M*T | T
- * T ::= any integer
+ * `P ::= S`
+ * `S ::= S+M | M`
+ * `M ::= M*T | T`
+ * `T ::= any integer`
 
-We can represent the same grammar without the | symbol by separating single
+We can represent the same grammar without the `|` symbol by separating single
 lines into two separate lines.
 
- * P ::= S
- * S ::= S+M
- * S ::= M
- * M ::= M*T
- * M ::= T
- * T ::= any integer
+ * `P ::= S`
+ * `S ::= S+M`
+ * `S ::= M`
+ * `M ::= M*T`
+ * `M ::= T`
+ * `T ::= any integer`
 
 Either way of representing a grammar is acceptable, and supported by this
 module.  See [the section on specifying grammar
@@ -177,13 +177,13 @@ section](#running-the-parser), below.
 
 A grammar rule requires a left-hand side, which must be a single
 nonterminal, represented by a string.  Its right-hand side is typically an
-array.  For instance, the grammar rule M ::= M*T has M as its left-hand side
-and the three-element array M, *, and T as its right hand side.
+array.  For instance, the grammar rule `M ::= M*T` has `M` as its left-hand side
+and the three-element array `M`, `*`, and `T` as its right hand side.
 
 The elements on the right hand side come in two types.  There are other
-nonterminals (such as M and T) and there are terminals (the symbol *, in
+nonterminals (such as M and T) and there are terminals (the symbol `*`, in
 this example).  Nonterminals are represented as strings, and terminals as
-regular expressions.  Thus to create the grammar rule M ::= M*T, we would
+regular expressions.  Thus to create the grammar rule `M ::= M*T`, we would
 use `'M'` as the left-hand side and `[ 'M', /\*/, 'T' ]` as the right-hand
 side.
 
