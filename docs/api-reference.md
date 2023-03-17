@@ -201,7 +201,7 @@ G.addRule( 'T', [ /-?[0-9]+/ ] );
 
 There are a few things to improve upon here.
 
- 1. We may combine rules that have the same left-hand side, just be listing
+ 1. We may combine rules that have the same left-hand side, just by listing
     the right-hand sides one after the other.
  1. We may express a one-element array containing a terminal by the regular
     expression alone, omitting the enclosing array.
