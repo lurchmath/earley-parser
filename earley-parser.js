@@ -546,8 +546,8 @@ if ( typeof( WorkerGlobalScope ) !== 'undefined'
             // Second, there is an optional fourth argument, the transformation function to
             // be applied to any token encountered of this type.  Because functions cannot
             // be passed to workers, the client must convert the function to a string
-            // (e.g., `String(f)` or CoffeeScript `"#{f}"`).  It will be rebuilt into a
-            // function on this side, obviouslw without its original environment/scope.
+            // (e.g., `String(f)`).  It will be rebuilt into a function on this side,
+            // obviously without its original environment/scope.
             case 'addType':
                 if ( !ParserStore[name] ) return
                 const regexp = event.data[2]
