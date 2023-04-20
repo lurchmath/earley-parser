@@ -4,22 +4,18 @@
     "description": "JavaScript implementation of the Earley parsing algorithm",
     "author": "Nathan Carter <ncarter@bentley.edu> (http://nathancarter.github.io",
     "license": "LGPLv3",
-    "dependencies": {
-        "coffee-script": "1.8.0",
-        "jasmine-node": "1.15.0",
-        "openmath-js": "^1.1.0"
-    },
+    "type": "module",
     "repository": {
         "type": "git",
         "url": "git://github.com/lurchmath/earley-parser.git"
     },
     "devDependencies": {
-        "gulp": "^4.0.0",
-        "gulp-coffee": "^2.3.5",
-        "gulp-shell": "^0.6.5",
-        "gulp-sourcemaps": "^2.6.4",
-        "gulp-uglify": "^3.0.0",
-        "pump": "^1.0.3",
+        "chai": "^4.2.0",
+        "esm": "^3.2.25",
+        "mocha": "^10.0.0",
         "webworker-threads": "^0.7.16"
+    },
+    "scripts": {
+        "test": "node test-server.cjs"
     }
 }
