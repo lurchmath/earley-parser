@@ -5,7 +5,7 @@
 
 ### In the browser
 
-Import the minified JavaScript, which you can [download from our repository
+Import the module, which you can [download from our repository
 directly](https://raw.githubusercontent.com/lurchmath/earley-parser/master/earley-parser.js)
 or import from a CDN with the following one-liner.
 
@@ -24,8 +24,7 @@ npm install earley-parser
 Then within any of your modules, import it as follows.
 
 ```js
-Tokenizer = require( "earley-parser" ).Tokenizer;
-Grammar = require( "earley-parser" ).Grammar;
+import { Tokenizer, Grammar } from 'earley-parser'
 ```
 
 After that, any of the example code snippets in this documentation should
@@ -39,7 +38,7 @@ file](https://raw.githubusercontent.com/lurchmath/earley-parser/master/earley-pa
 Your script can then create the worker as follows.
 
 ```js
-W = new Worker( "path/to/earley-parser.js" );
+W = new Worker( 'path/to/earley-parser.js', { type : 'module' } );
 ```
 
 This exposes an asynchronous API documented [below](#webworker-api).
@@ -168,7 +167,7 @@ need them often.  You call `G.setOption( name, value )` to set the default
 value for any option.
 
 The options are documented thoroughly in [the source code
-documentation](https://github.com/lurchmath/earley-parser/blob/master/earley-parser.litcoffee#earley-algorithm),
+documentation](https://github.com/lurchmath/earley-parser/blob/master/earley-parser.js#L148),
 so I do not repeat that information here.  Examples of the output produced
 by the various options appears in [the parsing
 section](#running-the-parser), below.
@@ -258,27 +257,11 @@ existing options.  Example:
 G.parse( 'text', { collapseBranches : true } );
 ```
 
-## Miscellany
-
-This module extends the global `JSON` object with a routine that can compare
-two JSON structures for structural equality.  Two atomic values are equal if
-they are actually equal, two arrays are equal if they have the same lengths
-and their corresponding entries are equal, and two objects are equal if they
-have the same keys and the corresponding values in each are equal.
-
-<div class="runnable-example">
-JSON.equals( [ 1, 2, { 3 : 4 } ], [ 1, 2, { 3 : 4 } ] );
-</div>
-
-<div class="runnable-example">
-JSON.equals( { a : 5 }, { b : 5 } );
-</div>
-
 ## More Examples
 
 In addition to the brief examples shown in this file, [the test suite in the
 source code
-repository](https://github.com/lurchmath/earley-parser/blob/master/earley-parser-spec.litcoffee)
+repository](https://github.com/lurchmath/earley-parser/blob/master/earley-tests.js)
 is (naturally) a large set of examples of how the module works.
 
 ## WebWorker API
