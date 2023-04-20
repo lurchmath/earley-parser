@@ -92,10 +92,6 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#miscellany" class="nav-link">Miscellany</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
             <li class="nav-item" data-level="2"><a href="#more-examples" class="nav-link">More Examples</a>
               <ul class="nav flex-column">
               </ul>
@@ -114,7 +110,7 @@
 <h1 id="api-reference">API Reference</h1>
 <h2 id="getting-started">Getting started</h2>
 <h3 id="in-the-browser">In the browser</h3>
-<p>Import the minified JavaScript, which you can <a href="https://raw.githubusercontent.com/lurchmath/earley-parser/master/earley-parser.js">download from our repository
+<p>Import the module, which you can <a href="https://raw.githubusercontent.com/lurchmath/earley-parser/master/earley-parser.js">download from our repository
 directly</a>
 or import from a CDN with the following one-liner.</p>
 <pre><code class="language-html">&lt;script src='https://cdn.jsdelivr.net/npm/earley-parser@1/earley-parser.js'&gt;&lt;/script&gt;
@@ -124,8 +120,7 @@ or import from a CDN with the following one-liner.</p>
 <pre><code class="language-bash">npm install earley-parser
 </code></pre>
 <p>Then within any of your modules, import it as follows.</p>
-<pre><code class="language-js">Tokenizer = require( &quot;earley-parser&quot; ).Tokenizer;
-Grammar = require( &quot;earley-parser&quot; ).Grammar;
+<pre><code class="language-js">import { Tokenizer, Grammar } from 'earley-parser'
 </code></pre>
 <p>After that, any of the example code snippets in this documentation should
 function as-is.</p>
@@ -133,7 +128,7 @@ function as-is.</p>
 <p>To place this script in a WebWorker, you will need to download <a href="https://raw.githubusercontent.com/lurchmath/earley-parser/master/earley-parser.js">its source
 file</a> and place it in your project's web space.</p>
 <p>Your script can then create the worker as follows.</p>
-<pre><code class="language-js">W = new Worker( &quot;path/to/earley-parser.js&quot; );
+<pre><code class="language-js">W = new Worker( 'path/to/earley-parser.js', { type : 'module' } );
 </code></pre>
 <p>This exposes an asynchronous API documented <a href="#webworker-api">below</a>.</p>
 <h2 id="tokenizing">Tokenizing</h2>
@@ -231,7 +226,7 @@ that will govern its behavior.  Any of these can be overridden in any call
 to the parse function, later, but you can set defaults here if you plan to
 need them often.  You call <code>G.setOption( name, value )</code> to set the default
 value for any option.</p>
-<p>The options are documented thoroughly in <a href="https://github.com/lurchmath/earley-parser/blob/master/earley-parser.litcoffee#earley-algorithm">the source code
+<p>The options are documented thoroughly in <a href="https://github.com/lurchmath/earley-parser/blob/master/earley-parser.js#L148">the source code
 documentation</a>,
 so I do not repeat that information here.  Examples of the output produced
 by the various options appears in <a href="#running-the-parser">the parsing
@@ -305,22 +300,8 @@ an optional second argument, an object whose keys and values override the
 existing options.  Example:</p>
 <pre><code class="language-js">G.parse( 'text', { collapseBranches : true } );
 </code></pre>
-<h2 id="miscellany">Miscellany</h2>
-<p>This module extends the global <code>JSON</code> object with a routine that can compare
-two JSON structures for structural equality.  Two atomic values are equal if
-they are actually equal, two arrays are equal if they have the same lengths
-and their corresponding entries are equal, and two objects are equal if they
-have the same keys and the corresponding values in each are equal.</p>
-<div class="runnable-example">
-JSON.equals( [ 1, 2, { 3 : 4 } ], [ 1, 2, { 3 : 4 } ] );
-</div>
-
-<div class="runnable-example">
-JSON.equals( { a : 5 }, { b : 5 } );
-</div>
-
 <h2 id="more-examples">More Examples</h2>
-<p>In addition to the brief examples shown in this file, <a href="https://github.com/lurchmath/earley-parser/blob/master/earley-parser-spec.litcoffee">the test suite in the
+<p>In addition to the brief examples shown in this file, <a href="https://github.com/lurchmath/earley-parser/blob/master/earley-tests.js">the test suite in the
 source code
 repository</a>
 is (naturally) a large set of examples of how the module works.</p>
